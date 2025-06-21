@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import asyncHandler from 'express-async-handler';
 
+
 // @desc    Get user addresses
 // @route   GET /api/user/address
 // @access  Private
@@ -141,3 +142,51 @@ export const updateAddress = asyncHandler(async (req, res) => {
       profile: updatedUser.profile
     });
   });
+
+  export const addToWishList = asyncHandler(async(req, res)=>{
+    try {
+      const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $addToSet: { wishlist: req.body.productId } },
+        { new: true }
+      ).populate('wishlist');
+      res.json(user.wishlist);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  })
+
+  export const removeFromWishList = asyncHandler(async (req, res) => {
+    try {
+      const { productId } = req.params;
+  
+      const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { wishlist: productId } },  // NOTE: plain string, not ObjectId!
+        { new: true }
+      ).populate('wishlist');
+  
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      res.json(user.wishlist);
+  
+    } catch (error) {
+      console.error('Error removing from wishlist:', error);
+      res.status(400).json({ error: error.message });
+    }
+  });
+  
+  
+
+  export const getWishList = asyncHandler(async (req, res) => {
+    try {
+      const user = await User.findById(req.user._id).populate('wishlist');
+      res.json(user.wishlist);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  })
+
+  

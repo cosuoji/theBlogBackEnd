@@ -20,7 +20,7 @@ const cartItemSchema = new mongoose.Schema({
     type: Number,
     required: true
   }
-}, { _id: false });
+}, { _id: true });
 
 const cartSchema = new mongoose.Schema({
   user: {

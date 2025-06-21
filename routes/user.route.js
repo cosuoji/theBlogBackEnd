@@ -6,7 +6,10 @@ import {
     deleteAddress,
     setDefaultAddress,
     getAddresses,
-    updateProfile
+    updateProfile,
+    addToWishList,
+    removeFromWishList,
+    getWishList
   } from '../controllers/user.controller.js';
 
 const userRoutes = express.Router();
@@ -17,6 +20,9 @@ userRoutes.post("/address", protectRoute, addAddress)
 userRoutes.put("/address/:id", protectRoute, updateAddress)
 userRoutes.delete("/address/:id", protectRoute, deleteAddress)
 userRoutes.put("/address/:id/set-default", setDefaultAddress)
+userRoutes.post("/wishlist/:productId", protectRoute, addToWishList )
+userRoutes.delete("/wishlist/:productId",protectRoute, removeFromWishList)
+userRoutes.get("/wishlist/products",protectRoute, getWishList)
 
 
 export default userRoutes;

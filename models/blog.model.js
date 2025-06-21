@@ -50,12 +50,16 @@ const blogSchema = new mongoose.Schema({
     type:Boolean,
     default: false
   },
-  magazineIssue:{type: String},
+  magazineIssue:{type: String, index: true},
   category: {type: String, required: true},
   contentBlocks: [contentBlockSchema],
   author: {type: String},
   publishedAt: { type: Date, default: Date.now },
-  tags: [String]
+  tags: [String],
+  magazineRef: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product'
+  }
 });
 
 // Add pre-save hook to auto-generate slug

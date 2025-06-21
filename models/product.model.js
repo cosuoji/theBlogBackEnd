@@ -24,11 +24,18 @@ const productSchema = new mongoose.Schema({
   },
   productType: {
     type: String,
-    enum: ['regular', 'magazine'],
+    enum: ['regular', 'magazine', "shoe"],
     default: 'regular'
   },
   magazineData: {
-    issueNumber: Number,
+    issueNumber: {
+      type: Number,
+      required: true,
+      validate: {
+        validator: Number.isInteger,
+        message: 'Issue number must be an integer'
+      }
+    },
     coverImage: {
       url: String,
       publicId: String
@@ -44,6 +51,26 @@ const productSchema = new mongoose.Schema({
         return value >= this.price;
       },
       message: 'Compare price must be greater than or equal to price'
+    }
+  },
+  shoeData: {
+    colors: [{
+      name: String,
+      hexCode: String,
+      images: [{
+        url: String,
+        publicId: String,
+        isPrimary: Boolean
+      }]
+    }],
+    sizes: [{
+      size: Number,
+      stock: Number
+    }],
+    materials: [String],
+    gender: {
+      type: String,
+      enum: ['men', 'women', 'unisex']
     }
   },
   images: [
