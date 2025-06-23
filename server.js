@@ -12,6 +12,7 @@ import orderRoutes from "./routes/order.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import userRoutes from "./routes/user.route.js";
 import magazineRoutes from "./routes/magazine.routes.js";
+import shoeRoutes from "./routes/shoe.routes.js";
 
 
 const app = express()
@@ -47,6 +48,7 @@ app.use("/api/coupons", couponRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/products", productRoutes)
 app.use("/api/user", userRoutes)
+app.use("api/shoes", shoeRoutes)
 app.use("/api/magazines", magazineRoutes)
 
 

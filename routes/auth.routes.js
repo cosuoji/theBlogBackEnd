@@ -2,12 +2,11 @@ import express from "express";
 import { login, logout, signup, refreshToken, getFullProfile } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import ImageKit from 'imagekit';
-import { validateObjectId } from "../middleware/validateObjectId.js";
 
 
 const authRoutes = express.Router();
 
-const imagekit = new ImageKit({
+export const imagekit = new ImageKit({
     publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
     privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
     urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
