@@ -1,5 +1,5 @@
 import express from "express";
-import { login, logout, signup, refreshToken, getFullProfile } from "../controllers/auth.controller.js";
+import { login, logout, signup, refreshToken, getFullProfile, forgotPassword, resetPassword } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import ImageKit from 'imagekit';
 
@@ -38,5 +38,7 @@ authRoutes.post("/signup", signup);
 authRoutes.post("/login", login);
 authRoutes.post("/logout", logout);
 authRoutes.post("/refresh-token", refreshToken);
+authRoutes.post("forgot-password", forgotPassword)
+authRoutes.post("reset-password", resetPassword)
 
 export default authRoutes;

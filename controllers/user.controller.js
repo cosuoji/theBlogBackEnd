@@ -147,7 +147,7 @@ export const updateAddress = asyncHandler(async (req, res) => {
     try {
       const user = await User.findByIdAndUpdate(
         req.user._id,
-        { $addToSet: { wishlist: req.body.productId } },
+        { $addToSet: { wishlist: req.body.productId.toString() } },
         { new: true }
       ).populate('wishlist');
       res.json(user.wishlist);
@@ -159,7 +159,6 @@ export const updateAddress = asyncHandler(async (req, res) => {
   export const removeFromWishList = asyncHandler(async (req, res) => {
     try {
       const { productId } = req.params;
-  
       const user = await User.findByIdAndUpdate(
         req.user._id,
         { $pull: { wishlist: productId } },  // NOTE: plain string, not ObjectId!
@@ -182,11 +181,17 @@ export const updateAddress = asyncHandler(async (req, res) => {
 
   export const getWishList = asyncHandler(async (req, res) => {
     try {
-      const user = await User.findById(req.user._id).populate('wishlist');
-      res.json(user.wishlist);
+      const user = await User.findById(req.user._id)
+       
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+    
+      res.json(user.wishlist || []);
     } catch (error) {
+      console.error('Error getting wishlist:', error);
       res.status(400).json({ error: error.message });
     }
-  })
-
-  
+  });

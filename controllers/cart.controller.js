@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import Cart from '../models/cart.model.js';
 import Product from '../models/product.model.js';
+import Shoe from '../models/shoe.model.js';
 
 // @desc    Get user's cart
 // @route   GET /api/cart
@@ -37,7 +38,9 @@ export const getCart = asyncHandler(async (req, res) => {
 export const addToCart = asyncHandler(async (req, res) => {
   const { productId, variant, quantity = 1 } = req.body;
 
-  const product = await Product.findById(productId);
+  
+
+  const product = await Product.findById(productId)
   if (!product) {
     return res.status(404).json({ message: 'Product not found' });
   }
@@ -82,6 +85,8 @@ export const addToCart = asyncHandler(async (req, res) => {
     });
   }
 
+  
+
   await cart.save();
   
   // Return populated cart
@@ -92,6 +97,60 @@ export const addToCart = asyncHandler(async (req, res) => {
 
   res.status(201).json(populatedCart);
 });
+
+export const addToCartShoes = asyncHandler(async(req, res) => {
+  const { productId, variant, quantity = 1 } = req.body;
+
+  // 1. Validate shoe exists
+  const shoe = await Shoe.findById(productId);
+  if (!shoe) {
+    return res.status(404).json({ message: 'Shoe not found' });
+  }
+
+  // 2. Validate color and size
+  const colorValid = shoe.colorOptions.some(c => c._id.equals(variant.colorId));
+  const sizeValid = shoe.sizes.includes(variant.size);
+  
+  if (!colorValid || !sizeValid) {
+    return res.status(400).json({ 
+      message: 'Invalid color or size selection' 
+    });
+  }
+
+  // 3. Find or create cart
+  let cart = await Cart.findOne({ user: req.user._id }) || 
+             new Cart({ user: req.user._id, items: [] });
+
+  // 4. Check for existing identical item
+  const existingItem = cart.items.find(item =>
+    item.product.equals(productId) &&
+    item.variant?.colorId.equals(variant.colorId) &&
+    item.variant?.size === variant.size
+  );
+
+  // 5. Update or add item
+  if (existingItem) {
+    existingItem.quantity += quantity;
+  } else {
+    cart.items.push({
+      product: productId,
+      variant,
+      quantity,
+      price: shoe.discountedPrice || shoe.basePrice,
+      productType: 'shoe'
+    });
+  }
+
+  await cart.save();
+
+  // 6. Return populated cart
+  const populatedCart = await Cart.populate(cart, {
+    path: 'items.product items.variant.colorId',
+    select: 'name basePrice discountedPrice images colorOptions sizes hexCode name'
+  });
+
+  res.status(200).json(populatedCart);
+})
 
 // @desc    Remove item from cart
 // @route   DELETE /api/cart/:itemId

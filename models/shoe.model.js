@@ -33,15 +33,13 @@ const shoeSchema = new mongoose.Schema({
   }],
   tags: [String],
 
-  // Variant Dimensions
-  variantDimensions: {
-    type: [String],
-    default: ['color', 'size', 'width', 'soleType', 'lastType', 'material'],
-    enum: ['color', 'size', 'width', 'soleType', 'lastType', 'material']
+  coverImage:{
+    url: String
   },
 
-  // Variant Options
-  colorOptions: [{
+   // Variant Options
+   colorOptions: [{
+    _id: mongoose.Schema.Types.ObjectId,
     name: String,
     hexCode: String,
     images: [{
@@ -51,10 +49,7 @@ const shoeSchema = new mongoose.Schema({
     }]
   }],
   
-  sizeOptions: {
-    type: [Number], // [40, 41, 42,...]
-    default: Array.from({ length: 8 }, (_, i) => 40 + i) // Sizes 40-47
-  },
+  sizeOptions: [Number], // [40, 41, 42,...]
   
   widthOptions: {
     type: [String],
@@ -63,61 +58,61 @@ const shoeSchema = new mongoose.Schema({
   },
   
   soleOptions: [{
+    _id: mongoose.Schema.Types.ObjectId,
     name: String,
     description: String
   }],
   
   lastOptions: [{
+    _id: mongoose.Schema.Types.ObjectId,
     name: String,
     description: String,
     image: String
   }],
   
   materialOptions: [{
-    name: String,
+    name: {
+      type: String,
+      required: true
+    },
     type: {
       type: String,
-      enum: ['Leather', 'Synthetic', 'Textile', 'Rubber']
+      enum: ['Leather', 'Synthetic', 'Textile', 'Rubber', "Suede"],
+      default: 'Leather'
     },
-    sustainabilityRating: Number
+    sustainabilityRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5
+    }
   }],
 
-  // Inventory & Pricing
-  variants: [{
+   // Variants
+   variants: [{
     sku: String,
     color: {
       type: mongoose.Schema.Types.ObjectId,
-      refPath: 'colorOptions'
+      ref: 'Shoe.colorOptions'
     },
     size: Number,
     width: String,
     soleType: {
       type: mongoose.Schema.Types.ObjectId,
-      refPath: 'soleOptions'
+      ref: 'Shoe.soleOptions'
     },
     lastType: {
       type: mongoose.Schema.Types.ObjectId,
-      refPath: 'lastOptions'
+      ref: 'Shoe.lastOptions'
     },
     material: {
       type: mongoose.Schema.Types.ObjectId,
-      refPath: 'materialOptions'
+      ref: 'Shoe.materialOptions'
     },
-    priceAdjustment: {
-      type: Number,
-      default: 0
-    },
-    stock: {
-      type: Number,
-      default: 0
-    },
+    priceAdjustment: Number,
+    stock: Number,
     barcode: String
   }],
-
-  // Technical Specifications
-  weight: Number,
-  careInstructions: [String],
-  isCustomizable: Boolean,
 
   // Metadata
   isActive: {
@@ -133,19 +128,64 @@ const shoeSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Generate SKUs automatically
+// Add _id to subdocuments if not present
 shoeSchema.pre('save', function(next) {
+  // Ensure all option arrays have _ids
+  ['colorOptions', 'soleOptions', 'lastOptions', 'materialOptions'].forEach(field => {
+    this[field] = this[field].map(option => {
+      if (!option._id) {
+        option._id = new mongoose.Types.ObjectId();
+      }
+      return option;
+    });
+  });
+
+  // Generate variants if not present
+  if (this.isNew && this.variants.length === 0) {
+    this.variants = generateVariants(this);
+  }
+
+  // Generate SKUs
   this.variants.forEach(variant => {
     if (!variant.sku) {
-      variant.sku = `SH-${this._id.toString().slice(-4)}-${variant.color.toString().slice(-2)}-${variant.size}-${variant.width.charAt(0)}`;
+      const colorIndex = this.colorOptions.findIndex(c => c._id.equals(variant.color));
+      const soleIndex = this.soleOptions.findIndex(s => s._id.equals(variant.soleType));
+      variant.sku = `SH-${this._id.toString().slice(-4)}-${colorIndex}${soleIndex}-${variant.size}-${variant.width.charAt(0)}`;
     }
   });
+
   next();
 });
 
-// Indexes for faster queries
-shoeSchema.index({ 'variants.sku': 1 });
-shoeSchema.index({ 'variants.stock': 1 });
+// Variant generation helper
+function generateVariants(shoe) {
+  const variants = [];
+  
+  shoe.colorOptions.forEach(color => {
+    shoe.sizeOptions.forEach(size => {
+      shoe.widthOptions.forEach(width => {
+        shoe.soleOptions.forEach(sole => {
+          shoe.lastOptions.forEach(last => {
+            shoe.materialOptions.forEach(material => {
+              variants.push({
+                color: color._id,
+                size,
+                width,
+                soleType: sole._id,
+                lastType: last._id,
+                material: material._id,
+                priceAdjustment: 0,
+                stock: 0
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+  
+  return variants;
+}
 
 const Shoe = mongoose.model('Shoe', shoeSchema);
 export default Shoe;

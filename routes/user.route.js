@@ -20,7 +20,7 @@ userRoutes.post("/address", protectRoute, addAddress)
 userRoutes.put("/address/:id", protectRoute, updateAddress)
 userRoutes.delete("/address/:id", protectRoute, deleteAddress)
 userRoutes.put("/address/:id/set-default", setDefaultAddress)
-userRoutes.post("/wishlist/:productId", protectRoute, addToWishList )
+userRoutes.post("/wishlist/", protectRoute, addToWishList )
 userRoutes.delete("/wishlist/:productId",protectRoute, removeFromWishList)
 userRoutes.get("/wishlist/products",protectRoute, getWishList)
 

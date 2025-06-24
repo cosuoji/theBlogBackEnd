@@ -4,6 +4,10 @@ import jwt from "jsonwebtoken";
 import validator from "validator"; // install with: npm install validator
 import asyncHandler from 'express-async-handler';
 import Order from "../models/order.model.js";
+import crypto from 'crypto';
+import sendEmail from "../lib/sendEmail.js";
+
+
 
 
 export const signup = async (req, res) => {
@@ -199,10 +203,54 @@ try {
 		res.json({
 		  user,
 		  addresses: user.addresses || [],
-		  orders: orders || []
+		  wishlist: user.wishlist || [],
+		  orders: orders || [],
 		});
 } catch (error) {
 	res.status(500).json({ message: "Server error", error: error.message });
 }
   });
   
+  export const forgotPassword = async (req, res) => {
+	const { email } = req.body;
+  
+	// 1. Find user
+	const user = await User.findOne({ email });
+	if (!user) return res.status(400).json({ message: "No account with that email" });
+  
+	// 2. Generate reset token
+	const resetToken = crypto.randomBytes(32).toString('hex');
+	const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+  
+	user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+	user.resetPasswordExpires = resetTokenExpiry;
+	await user.save();
+  
+	// 3. Send email
+	const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+	await sendEmail(user.email, "Password Reset", `Reset your password: ${resetUrl}`);
+  
+	res.json({ message: "Reset link sent to your email" });
+  };
+
+  // 2) User resets password
+export const resetPassword = async (req, res) => {
+	const { token } = req.params;
+	const { password } = req.body;
+  
+	const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  
+	const user = await User.findOne({
+	  resetPasswordToken: hashedToken,
+	  resetPasswordExpires: { $gt: Date.now() },
+	});
+  
+	if (!user) return res.status(400).json({ message: "Token invalid or expired" });
+  
+	user.password = password;
+	user.resetPasswordToken = undefined;
+	user.resetPasswordExpires = undefined;
+	await user.save();
+  
+	res.json({ message: "Password has been reset successfully" });
+  };

@@ -25,7 +25,7 @@ export const getShoes = asyncHandler(async (req, res) => {
 
 export const getSingleShoe = asyncHandler(async(req, res)=>{
     try {
-        const shoe = await Shoe.findById(req.params.id)
+        const shoe = await Shoe.findById(req.params.product)
           .populate('categories')
           .populate('colorOptions')
           .populate('soleOptions')
@@ -39,23 +39,27 @@ export const getSingleShoe = asyncHandler(async(req, res)=>{
       }
 })
 
-export const createNewShoe = asyncHandler(async(req, res)=>{
-    try {
-        // Generate all variant combinations
-        const variants = generateVariants(req.body);
-        
+export const createNewShoe = asyncHandler(async(req, res) => {
+      try {
+        // Create initial shoe document
+        console.log(req.body)
         const shoe = new Shoe({
-          ...req.body,
-          variants,
-          slug: generateSlug(req.body.name)
+            ...req.body,
+            slug: generateSlug(req.body.name)
         });
-    
+
+        // Save the shoe (this will trigger pre-save hooks)
         await shoe.save();
+        
         res.status(201).json(shoe);
-      } catch (err) {
-        res.status(400).json({ message: err.message });
-      }
-})
+    } catch (err) {
+        res.status(400).json({ 
+            message: err.message,
+            errors: err.errors || null
+        });
+    }
+});
+
 
 export const updateShoe = asyncHandler(async(req, res)=>{
     try {
@@ -137,8 +141,7 @@ export const getSoles = asyncHandler(async(req, res) =>{
 export const getCategory = asyncHandler(async(req, res) =>{
   try {
     const categories = await Category.find()
-      .populate('parent', 'name slug');
-    
+      .populate('parent', 'name slug');   
     // Organize into hierarchy
     const hierarchy = buildCategoryTree(categories);
     res.json(hierarchy);
@@ -235,43 +238,38 @@ export const createCategory = asyncHandler(async(req, res)=>{
 
 
 
-// Helper function to generate variants
-function generateVariants(body) {
-    const variants = [];
-    
-    body.colorOptions.forEach(colorId => {
-      body.sizeOptions.forEach(size => {
-        body.widthOptions.forEach(width => {
-          body.soleOptions.forEach(soleId => {
-            body.lastOptions.forEach(lastId => {
-              body.materialOptions.forEach(materialId => {
-                variants.push({
-                  color: colorId,
-                  size,
-                  width,
-                  soleType: soleId,
-                  lastType: lastId,
-                  material: materialId,
-                  stock: 0,
-                  priceAdjustment: 0,
-                  sku: generateSKU(body.name, colorId, size, width)
-                });
-              });
-            });
-          });
-        });
-      });
-    });
-    
-    return variants;
-  }
 
-  function generateSKU(name, colorId, size, width) {
-    const prefix = name.substring(0, 3).toUpperCase();
-    const colorCode = colorId.toString().substring(18, 21);
-    const widthCode = width.charAt(0).toUpperCase();
-    return `${prefix}-${colorCode}-${size}${widthCode}`;
-  }
+// Updated generateVariants function
+const generateVariants = (options) => {
+  const variants = [];
+  
+  options.colorOptions.forEach((color, colorIndex) => {
+      options.sizeOptions.forEach(size => {
+          options.widthOptions.forEach(width => {
+              options.soleOptions.forEach((sole, soleIndex) => {
+                  options.lastOptions.forEach((last, lastIndex) => {
+                      options.materialOptions.forEach((material, materialIndex) => {
+                          variants.push({
+                              color: color._id ? color._id : color, // Handle both cases
+                              size,
+                              width,
+                              soleType: sole._id ? sole._id : sole,
+                              lastType: last._id ? last._id : last,
+                              material: material._id ? material._id : material,
+                              sku: `SH-${options.shoeId.toString().slice(-4)}-${colorIndex}${soleIndex}-${size}-${width.charAt(0)}`,
+                              priceAdjustment: 0,
+                              stock: 0
+                          });
+                      });
+                  });
+              });
+          });
+      });
+  });
+  
+  return variants;
+};
+
   
   function generateSlug(name) {
     return name.toLowerCase().replace(/[^a-z0-9]/g, '-');

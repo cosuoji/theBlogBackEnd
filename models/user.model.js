@@ -57,7 +57,10 @@ const userSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: "Order"
     }],
-    refreshTokens: [String] // Alternative to Redis if needed
+    refreshTokens: [String],// Alternative to Redis if needed
+      // ✅ NEW FOR PASSWORD RESET:
+  resetPasswordToken: String,
+  resetPasswordExpires: Date
   }, { timestamps: true });
 
 

@@ -5,12 +5,12 @@ import { createCategory, createCollection, createColor, createLasts, createMater
 
 const shoeRoutes = express.Router();
 
-//Shoe Methods
-shoeRoutes.post("/", protectRoute, adminRoute, createNewShoe);
-shoeRoutes.get("/", getShoes)
-shoeRoutes.get("/:id", getSingleShoe)
-shoeRoutes.put("/:id", protectRoute, adminRoute, updateShoe)
-shoeRoutes.delete("/:id", protectRoute, adminRoute, deleteShoe)
+//Shoe Variant Methods
+shoeRoutes.post("/colors", protectRoute, adminRoute, createColor)
+shoeRoutes.post("/soles", protectRoute, adminRoute, createSole)
+shoeRoutes.post("/materials", protectRoute, adminRoute, createMaterials)
+shoeRoutes.post("/lasts", protectRoute, adminRoute, createLasts)
+shoeRoutes.post("/collections", protectRoute, adminRoute, createCollection)
 
 //Get Shoe Variant Methods
 shoeRoutes.get('/categories', getCategory),
@@ -20,15 +20,18 @@ shoeRoutes.get('/soles', getSoles),
 shoeRoutes.get('/lasts',getLasts),
 shoeRoutes.get('/materials', getMaterials)
 
-//Shoe Variant Methods
-shoeRoutes.post("/colors", protectRoute, adminRoute, createColor)
-shoeRoutes.post("/soles", protectRoute, adminRoute, createSole)
-shoeRoutes.post("/materials", protectRoute, adminRoute, createMaterials)
-shoeRoutes.post("/lasts", protectRoute, adminRoute, createLasts)
-shoeRoutes.post("/collections", protectRoute, adminRoute, createCollection)
-
 
 //Category Routes
 shoeRoutes.post("/categories",protectRoute, adminRoute, createCategory)
+
+//Shoe Methods
+shoeRoutes.post("/", protectRoute, adminRoute, createNewShoe);
+shoeRoutes.get("/", getShoes)
+shoeRoutes.get("/:product", getSingleShoe)
+shoeRoutes.put("/:productId", protectRoute, adminRoute, updateShoe)
+shoeRoutes.delete("/:productId", protectRoute, adminRoute, deleteShoe)
+
+
+
 
 export default shoeRoutes;

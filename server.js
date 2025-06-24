@@ -48,7 +48,7 @@ app.use("/api/coupons", couponRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/products", productRoutes)
 app.use("/api/user", userRoutes)
-app.use("api/shoes", shoeRoutes)
+app.use("/api/shoes", shoeRoutes)
 app.use("/api/magazines", magazineRoutes)
 
 
