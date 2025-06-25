@@ -27,7 +27,7 @@ shoeRoutes.post("/categories",protectRoute, adminRoute, createCategory)
 //Shoe Methods
 shoeRoutes.post("/", protectRoute, adminRoute, createNewShoe);
 shoeRoutes.get("/", getShoes)
-shoeRoutes.get("/:product", getSingleShoe)
+shoeRoutes.get("/:productId", getSingleShoe)
 shoeRoutes.put("/:productId", protectRoute, adminRoute, updateShoe)
 shoeRoutes.delete("/:productId", protectRoute, adminRoute, deleteShoe)
 

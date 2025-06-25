@@ -36,60 +36,55 @@ export const getCart = asyncHandler(async (req, res) => {
 
 // controllers/productController.js
 export const addToCart = asyncHandler(async (req, res) => {
-  const { productId, variant, quantity = 1 } = req.body;
+  const { productId, variant = null, quantity = 1 } = req.body;
 
-  
-
-  const product = await Product.findById(productId)
+  const product = await Product.findById(productId);
   if (!product) {
     return res.status(404).json({ message: 'Product not found' });
   }
 
-  // Validate variant if it's a regular product
+  let cart = await Cart.findOne({ user: req.user._id });
+  if (!cart) {
+    cart = new Cart({ user: req.user._id, items: [] });
+  }
+
+  // Validate variants if needed
   if (product.productType === 'regular' && variant) {
-    const variantExists = product.variants.some(
-      v => v.name === variant.name && 
-      v.options.some(opt => opt.name === variant.option)
+    const isValid = product.variants?.some(v =>
+      v.name === variant.name &&
+      v.options?.some(opt => opt.name === variant.option)
     );
-    if (!variantExists) {
-      return res.status(400).json({ message: 'Invalid variant' });
+
+    if (!isValid) {
+      return res.status(400).json({ message: 'Invalid variant selected.' });
     }
   }
 
-  let cart = await Cart.findOne({ user: req.user._id });
-  
-  if (!cart) {
-    cart = new Cart({ 
-      user: req.user._id, 
-      items: [] 
-    });
-  }
+  // For matching: shallow or deep comparison based on product type
+  const isSameVariant = (a, b) => {
+    if (!a && !b) return true;
+    return JSON.stringify(a) === JSON.stringify(b);
+  };
 
-  // Find existing item
-  const existingItemIndex = cart.items.findIndex(item => 
-    item.product.equals(productId) && 
-    JSON.stringify(item.variant) === JSON.stringify(variant)
+  const existingItemIndex = cart.items.findIndex(item =>
+    item.product.equals(productId) &&
+    isSameVariant(item.variant, variant)
   );
 
-  if (existingItemIndex >= 0) {
-    // Update quantity if item exists
+  if (existingItemIndex > -1) {
     cart.items[existingItemIndex].quantity += quantity;
   } else {
-    // Add new item
     cart.items.push({
-      product: productId,
+      product: product._id,
       variant,
       quantity,
       price: product.price,
-      productType: product.productType
+      productType: product.productType || 'default'
     });
   }
 
-  
-
   await cart.save();
-  
-  // Return populated cart
+
   const populatedCart = await Cart.populate(cart, {
     path: 'items.product',
     select: 'name price images productType magazineData'
@@ -97,6 +92,7 @@ export const addToCart = asyncHandler(async (req, res) => {
 
   res.status(201).json(populatedCart);
 });
+
 
 export const addToCartShoes = asyncHandler(async(req, res) => {
   const { productId, variant, quantity = 1 } = req.body;
@@ -108,8 +104,8 @@ export const addToCartShoes = asyncHandler(async(req, res) => {
   }
 
   // 2. Validate color and size
-  const colorValid = shoe.colorOptions.some(c => c._id.equals(variant.colorId));
-  const sizeValid = shoe.sizes.includes(variant.size);
+  const colorValid = shoe.colorOptions.some(c => c._id.equals(variant.color._id));
+  const sizeValid = shoe.sizeOptions.includes(variant.size);
   
   if (!colorValid || !sizeValid) {
     return res.status(400).json({ 

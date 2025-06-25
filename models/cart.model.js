@@ -3,12 +3,30 @@ import mongoose from 'mongoose';
 const cartItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
+    ref: 'Product', // or 'Shoe' if you're separating collections
     required: true
   },
   variant: {
-    name: String,
-    option: String
+    color: {
+      _id: mongoose.Schema.Types.ObjectId,
+      name: String,
+      hexCode: String,
+      images: [Object]
+    },
+    size: Number,
+    width: String,
+    last: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Last'
+    },
+    sole: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Sole'
+    },
+    material: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Material'
+    }
   },
   quantity: {
     type: Number,
@@ -19,6 +37,11 @@ const cartItemSchema = new mongoose.Schema({
   price: {
     type: Number,
     required: true
+  },
+  productType: {
+    type: String,
+    enum: ['shoe', 'magazine', 'default'], // adapt this to your system
+    default: 'default'
   }
 }, { _id: true });
 
@@ -48,13 +71,14 @@ const cartSchema = new mongoose.Schema({
   },
   expiresAt: {
     type: Date,
-    default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+    default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   }
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
+
 
 // Calculate totals before saving
 cartSchema.pre('save', function(next) {

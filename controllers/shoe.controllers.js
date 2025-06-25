@@ -25,7 +25,7 @@ export const getShoes = asyncHandler(async (req, res) => {
 
 export const getSingleShoe = asyncHandler(async(req, res)=>{
     try {
-        const shoe = await Shoe.findById(req.params.product)
+        const shoe = await Shoe.findById(req.params.productId)
           .populate('categories')
           .populate('colorOptions')
           .populate('soleOptions')
@@ -42,7 +42,6 @@ export const getSingleShoe = asyncHandler(async(req, res)=>{
 export const createNewShoe = asyncHandler(async(req, res) => {
       try {
         // Create initial shoe document
-        console.log(req.body)
         const shoe = new Shoe({
             ...req.body,
             slug: generateSlug(req.body.name)
