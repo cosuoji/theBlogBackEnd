@@ -36,7 +36,7 @@ export const getCart = asyncHandler(async (req, res) => {
 
 // controllers/productController.js
 export const addToCart = asyncHandler(async (req, res) => {
-  const { productId, variant = null, quantity = 1 } = req.body;
+  const { productId, variant = null, quantity = 1, currency } = req.body;
 
   const product = await Product.findById(productId);
   if (!product) {
@@ -79,7 +79,8 @@ export const addToCart = asyncHandler(async (req, res) => {
       variant,
       quantity,
       price: product.price,
-      productType: product.productType || 'default'
+      productType: product.productType || 'default',
+      productModel: "Product",
     });
   }
 
@@ -95,7 +96,7 @@ export const addToCart = asyncHandler(async (req, res) => {
 
 
 export const addToCartShoes = asyncHandler(async(req, res) => {
-  const { productId, variant, quantity = 1 } = req.body;
+  const { productId, variant, quantity = 1, currency } = req.body;
 
   // 1. Validate shoe exists
   const shoe = await Shoe.findById(productId);
@@ -113,6 +114,8 @@ export const addToCartShoes = asyncHandler(async(req, res) => {
     });
   }
 
+  console.log(shoe)
+
   // 3. Find or create cart
   let cart = await Cart.findOne({ user: req.user._id }) || 
              new Cart({ user: req.user._id, items: [] });
@@ -120,20 +123,23 @@ export const addToCartShoes = asyncHandler(async(req, res) => {
   // 4. Check for existing identical item
   const existingItem = cart.items.find(item =>
     item.product.equals(productId) &&
-    item.variant?.colorId.equals(variant.colorId) &&
+    item.variant?.color._id.equals(variant.color._id) &&
     item.variant?.size === variant.size
   );
 
+  
   // 5. Update or add item
   if (existingItem) {
     existingItem.quantity += quantity;
   } else {
     cart.items.push({
-      product: productId,
+      product: shoe._id,
       variant,
       quantity,
       price: shoe.discountedPrice || shoe.basePrice,
-      productType: 'shoe'
+      productType: 'shoe',
+      productModel: "Shoe",
+      shoe: shoe._id
     });
   }
 
@@ -141,7 +147,7 @@ export const addToCartShoes = asyncHandler(async(req, res) => {
 
   // 6. Return populated cart
   const populatedCart = await Cart.populate(cart, {
-    path: 'items.product items.variant.colorId',
+    path: 'items.product items.variant.colorId item.shoe',
     select: 'name basePrice discountedPrice images colorOptions sizes hexCode name'
   });
 

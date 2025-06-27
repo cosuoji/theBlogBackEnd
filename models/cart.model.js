@@ -1,10 +1,39 @@
 import mongoose from 'mongoose';
 
+const variantSchema = new mongoose.Schema({
+  color: {
+    _id: { type: mongoose.Schema.Types.ObjectId, ref: 'Color' },
+    name: String,
+    hexCode: String,
+    images: [Object]
+  },
+  size: Number,
+  width: String,
+  last: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Last'
+  },
+  sole: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Sole'
+  },
+  material: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Material'
+  }
+}, { _id: false });
+
+
 const cartItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product', // or 'Shoe' if you're separating collections
-    required: true
+    required: true,
+    refPath: 'productModel' // This tells Mongoose to look at productModel to determine which model to use
+  },
+  productModel: {
+    type: String,
+    required: true,
+    enum: ['Product', 'Shoe']
   },
   variant: {
     color: {
@@ -17,15 +46,15 @@ const cartItemSchema = new mongoose.Schema({
     width: String,
     last: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Last'
+      ref: 'LastOption'
     },
     sole: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Sole'
+      ref: 'SoleOption'
     },
     material: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Material'
+      ref: 'MaterialOption'
     }
   },
   quantity: {
@@ -42,7 +71,7 @@ const cartItemSchema = new mongoose.Schema({
     type: String,
     enum: ['shoe', 'magazine', 'default'], // adapt this to your system
     default: 'default'
-  }
+  },
 }, { _id: true });
 
 const cartSchema = new mongoose.Schema({
@@ -69,6 +98,7 @@ const cartSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  currency: { type: String, default: 'NGN' } ,
   expiresAt: {
     type: Date,
     default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)

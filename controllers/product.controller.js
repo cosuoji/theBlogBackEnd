@@ -82,15 +82,20 @@ export const getProducts = asyncHandler(async (req, res) => {
 
 
   export const getProductBySlug = asyncHandler(async (req, res) => {
-    const product = await Product.findOne({ slug: req.params.slug });
+    let product = await Product.findOne({ slug: req.params.slug })
+   
   
     if (!product) {
+      product = await Product.findById(req.params.slug)
+    } else {
       res.status(404);
       throw new Error('Product not found');
     }
   
     res.json(product);
   });
+
+  
   
   // @desc    Update a product
   // @route   PUT /api/products/:id

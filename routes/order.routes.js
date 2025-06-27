@@ -13,3 +13,24 @@ orderRoutes.put(":id/shipped", protectRoute, adminRoute, updateOrderToShipped)
 orderRoutes.put(":id/deliver", protectRoute, adminRoute, updateOrderToDelivered)
 
 export default orderRoutes;
+
+
+// 6. Backend Considerations
+// When sending prices to your backend (for orders/payments), always convert to your base currency (NGN):
+
+// const { currency, exchangeRates } = useCurrency();
+
+// const processOrder = async (cartItems) => {
+//   // Convert all prices to NGN before sending to backend
+//   const orderData = {
+//     items: cartItems.map(item => ({
+//       ...item,
+//       price: item.price * exchangeRates[currency],
+//       currency: 'NGN' // Always process in base currency
+//     })),
+//     original_currency: currency,
+//     exchange_rate: exchangeRates[currency]
+//   };
+
+//   await api.post('/orders', orderData);
+// };
