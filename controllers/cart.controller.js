@@ -97,7 +97,6 @@ export const addToCart = asyncHandler(async (req, res) => {
 
 export const addToCartShoes = asyncHandler(async(req, res) => {
   const { productId, variant, quantity = 1, currency } = req.body;
-
   // 1. Validate shoe exists
   const shoe = await Shoe.findById(productId);
   if (!shoe) {
@@ -113,8 +112,6 @@ export const addToCartShoes = asyncHandler(async(req, res) => {
       message: 'Invalid color or size selection' 
     });
   }
-
-  console.log(shoe)
 
   // 3. Find or create cart
   let cart = await Cart.findOne({ user: req.user._id }) || 

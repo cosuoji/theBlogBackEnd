@@ -101,7 +101,7 @@ export const deleteShoe = asyncHandler(async(req, res)=>{
 export const getColors = asyncHandler(async(req, res) =>{
   try {
     const colors = await ColorOption.find({ isActive: true });
-    res.json(colors);
+    res.json({colors: colors});
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -113,6 +113,7 @@ export const getMaterials = asyncHandler(async(req, res) =>{
     const materials = await MaterialOption.find();
     res.json(materials);
   } catch (err) {
+    console.log(err.message)
     res.status(500).json({ message: err.message });
   }
 })
@@ -130,8 +131,8 @@ export const getLasts = asyncHandler(async(req, res) =>{
 
 export const getSoles = asyncHandler(async(req, res) =>{
   try {
-    const materials = await SoleOption.find();
-    res.json(materials);
+    const soles = await SoleOption.find();
+    res.json(soles);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

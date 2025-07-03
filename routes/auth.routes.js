@@ -1,7 +1,8 @@
 import express from "express";
 import { login, logout, signup, refreshToken, getFullProfile, forgotPassword, resetPassword } from "../controllers/auth.controller.js";
-import { protectRoute } from "../middleware/auth.middleware.js";
+import { protectRoute, adminRoute } from "../middleware/auth.middleware.js";
 import ImageKit from 'imagekit';
+import AdminLog from "../models/adminlog.model.js";
 
 
 const authRoutes = express.Router();
@@ -40,5 +41,14 @@ authRoutes.post("/logout", logout);
 authRoutes.post("/refresh-token", refreshToken);
 authRoutes.post("forgot-password", forgotPassword)
 authRoutes.post("reset-password", resetPassword)
+authRoutes.get('/adminlogs', protectRoute, adminRoute, async (req, res) => {
+  const logs = await AdminLog.find()
+    .populate('admin', 'name email')
+    .populate('targetOrder', 'orderNumber status createdAt')
+    .sort({ createdAt: -1 });
+
+  res.json(logs);
+});
+
 
 export default authRoutes;

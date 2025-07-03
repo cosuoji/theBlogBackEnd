@@ -2,13 +2,11 @@ import mongoose from 'mongoose';
 
 const orderItemSchema = new mongoose.Schema({
   product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
+    type: Object, // Store the full product object
     required: true
   },
   variant: {
-    name: String,
-    option: String
+    name: Object,
   },
   quantity: {
     type: Number,
@@ -58,15 +56,16 @@ const orderSchema = new mongoose.Schema({
   payment: {
     method: {
       type: String,
-      enum: ['credit_card', 'paypal', 'stripe', 'cod'],
+      enum: ['credit_card', 'paypal', 'stripe', 'cod', "paystack"],
       required: true
     },
     status: {
       type: String,
-      enum: ['pending', 'paid', 'failed', 'refunded'],
+      enum: ['pending', 'failed', 'refunded', "Successful"],
       default: 'pending'
     },
     transactionId: String,
+    reference: String,
     amount: Number
   },
   shipping: {
@@ -77,7 +76,6 @@ const orderSchema = new mongoose.Schema({
   },
   subtotal: {
     type: Number,
-    required: true
   },
   tax: {
     type: Number,
@@ -93,10 +91,19 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+    enum: ["pending", "shipped", "delivered"],
     default: 'pending'
   },
-  notes: String
+  firstName: String, 
+  lastName: String, 
+  notes: String,
+  isCancelled: {
+    type: Boolean,
+    default: false
+  },
+  cancelledAt: {
+    type: Date
+  },
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
@@ -137,6 +144,10 @@ orderSchema.statics.getUserOrders = async function(userId, page = 1, limit = 10)
     currentPage: page
   };
 };
+
+orderSchema.index({ createdAt: -1 }); // For sorting/searching by date
+orderSchema.index({ 'user.email': 1 }); // Optional if you want to search by email
+
 
 const Order = mongoose.model('Order', orderSchema);
 export default Order;

@@ -1,19 +1,22 @@
 import express from "express";
 import { protectRoute, adminRoute } from "../middleware/auth.middleware.js";
-import { createOrder, getMyOrders, getOrderById, getOrders, updateOrderToDelivered, updateOrderToPaid, updateOrderToShipped } from "../controllers/order.controller.js";
+import { cancelOrder, checkPaymentStatus, createOrder, cycleOrderStatus, getMyOrders, getOrderById, getOrders, paystackPayment} from "../controllers/order.controller.js";
 
 const orderRoutes = express.Router();
 
 orderRoutes.post("/", protectRoute, createOrder)
-orderRoutes.get("/:id", protectRoute,adminRoute, getOrderById)
 orderRoutes.get("/myorders", protectRoute, getMyOrders)
 orderRoutes.get("/", protectRoute, adminRoute, getOrders)
-orderRoutes.put("/:id/pay", protectRoute, updateOrderToPaid)
-orderRoutes.put(":id/shipped", protectRoute, adminRoute, updateOrderToShipped)
-orderRoutes.put(":id/deliver", protectRoute, adminRoute, updateOrderToDelivered)
+orderRoutes.post("/payment", protectRoute, paystackPayment)
+orderRoutes.get("/payment/:reference", protectRoute, checkPaymentStatus)
+orderRoutes.put("/:id/status-cycle", protectRoute, adminRoute, cycleOrderStatus);
+orderRoutes.put('/:id/cancel', protectRoute, adminRoute, cancelOrder);
+orderRoutes.get("/:id", protectRoute, getOrderById)
+
+
+
 
 export default orderRoutes;
-
 
 // 6. Backend Considerations
 // When sending prices to your backend (for orders/payments), always convert to your base currency (NGN):

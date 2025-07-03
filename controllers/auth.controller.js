@@ -217,7 +217,7 @@ try {
 		  user,
 		  addresses: user.addresses || [],
 		  wishlist: user.wishlist || [],
-		  orders: orders || [],
+		  orders: [orders] || [],
 		});
 } catch (error) {
 	res.status(500).json({ message: "Server error", error: error.message });

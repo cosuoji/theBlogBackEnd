@@ -110,9 +110,9 @@ const shoeSchema = new mongoose.Schema({
       ref: 'Shoe.materialOptions'
     },
     priceAdjustment: Number,
-    stock: Number,
     barcode: String
   }],
+  
 
   // Metadata
   isActive: {
