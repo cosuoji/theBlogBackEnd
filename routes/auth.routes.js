@@ -39,8 +39,8 @@ authRoutes.post("/signup", signup);
 authRoutes.post("/login", login);
 authRoutes.post("/logout", logout);
 authRoutes.post("/refresh-token", refreshToken);
-authRoutes.post("forgot-password", forgotPassword)
-authRoutes.post("reset-password", resetPassword)
+authRoutes.post("/forgot-password", forgotPassword)
+authRoutes.post("/reset-password/:token", resetPassword)
 authRoutes.get('/adminlogs', protectRoute, adminRoute, async (req, res) => {
   const logs = await AdminLog.find()
     .populate('admin', 'name email')

@@ -166,15 +166,6 @@ export const removeFromCart = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'Cart not found' });
   }
 
-  //2. Debug logging (safe version)
-  // console.log('Cart items before removal:', {
-  //   itemCount: cart.items.length,
-  //   firstItem: cart.items[0] ? {
-  //     _id: cart.items[0]._id?.toString(),
-  //     product: cart.items[0].product?.toString()
-  //   } : null,
-  //   requestedId: itemId
-  // });
 
   // 3. Find the item index safely
   const itemIndex = cart.items.findIndex(item => 
