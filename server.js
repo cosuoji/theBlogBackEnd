@@ -40,7 +40,8 @@ app.use(function(req, res, next) {
   });  
 
   app.use(cors({
-    origin: 'http://localhost:5173', // Your frontend URL
+    //origin: 'http://localhost:5173', // Your frontend URL
+	origin: "https://thecompanytesting.netlify.app/",
     credentials: true // If using cookies/sessions
   }));
 
