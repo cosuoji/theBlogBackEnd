@@ -24,10 +24,6 @@ dotenv.config();
 
 const __dirname = path.resolve();
 const PORT = process.env.PORT || 5000;
-const allowedOrigins = [
-	'http://localhost:5173',
-	'https://thecompanytesting.netlify.app'
-  ];
 
 app.post("/api/orders/webhook",bodyParser.raw({ type: '*/*' }), paystackWebhook)
 
@@ -43,15 +39,25 @@ app.use(function(req, res, next) {
 	next();
   });  
 
+  const allowedOrigins = [
+	'http://localhost:5173',
+	'https://thecompanytesting.netlify.app',
+  ];
+  
   app.use(cors({
 	origin: function (origin, callback) {
-	  // allow requests with no origin (like mobile apps or curl)
 	  if (!origin) return callback(null, true);
 	  if (allowedOrigins.includes(origin)) return callback(null, true);
 	  return callback(new Error('Not allowed by CORS'));
 	},
-	credentials: true // allow cookies if needed
+	credentials: true // ✅ allows cookies across origins
   }));
+  
+
+  app.use((req, res, next) => {
+	console.log("Incoming Origin:", req.headers.origin);
+	next();
+  });
 
 app.use("/api/blogs", postRoutes)
 app.use("/api/auth", authRoutes)

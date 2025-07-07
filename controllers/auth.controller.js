@@ -11,7 +11,7 @@ import sendEmail from "../lib/sendEmail.js";
 
 
 export const signup = async (req, res) => {
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password} = req.body;
   
     try {
       // ✅ 1) Check if user already exists
@@ -42,7 +42,7 @@ export const signup = async (req, res) => {
       }
   
       // ✅ 4) Passed: create user
-      const user = await User.create({ email, password, profile: { firstName, lastName } });
+      const user = await User.create({ email, password });
   
       // ✅ 5) Auth tokens & cookies
       const { accessToken, refreshToken } = generateTokens(user._id);
@@ -182,23 +182,23 @@ const storeRefreshToken = async (userId, refreshToken) => {
 // Update cookie settings
 const setCookies = (res, accessToken, refreshToken) => {
 	const cookieOptions = {
-		httpOnly: true,
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "None", // for cross-site cookies (e.g., Netlify frontend → Render backend)
-		path: "/",
-	  };
+	  httpOnly: true,
+	  secure: true,           // ✅ Force HTTPS for Netlify
+	  sameSite: 'None',       // ✅ Required for cross-origin cookies
+	  path: '/',
+	};
   
-	res.cookie("accessToken", accessToken, {
+	res.cookie('accessToken', accessToken, {
 	  ...cookieOptions,
 	  maxAge: 60 * 60 * 1000, // 1 hour
 	});
   
-	res.cookie("refreshToken", refreshToken, {
+	res.cookie('refreshToken', refreshToken, {
 	  ...cookieOptions,
 	  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
 	});
   };
-
+  
 
 
 export const getFullProfile = asyncHandler(async (req, res) => {
