@@ -182,11 +182,11 @@ const storeRefreshToken = async (userId, refreshToken) => {
 // Update cookie settings
 const setCookies = (res, accessToken, refreshToken) => {
 	const cookieOptions = {
-	  httpOnly: true,
-	  secure: process.env.NODE_ENV === "production",
-	  sameSite: "lax", // Changed from strict
-	  path: "/",
-	};
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production",
+		sameSite: "None", // for cross-site cookies (e.g., Netlify frontend → Render backend)
+		path: "/",
+	  };
   
 	res.cookie("accessToken", accessToken, {
 	  ...cookieOptions,
