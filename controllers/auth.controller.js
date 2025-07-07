@@ -185,7 +185,6 @@ const setCookies = (res, accessToken, refreshToken) => {
 	  httpOnly: true,
 	  secure: process.env.NODE_ENV === "production",
 	  sameSite: "lax", // Changed from strict
-	  domain: process.env.COOKIE_DOMAIN || "localhost",
 	  path: "/",
 	};
   
