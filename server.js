@@ -54,10 +54,10 @@ app.use(function(req, res, next) {
   }));
   
 
-  app.use((req, res, next) => {
-	console.log("Incoming Origin:", req.headers.origin);
-	next();
-  });
+//   app.use((req, res, next) => {
+// 	console.log("Incoming Origin:", req.headers.origin);
+// 	next();
+//   });
 
 app.use("/api/blogs", postRoutes)
 app.use("/api/auth", authRoutes)

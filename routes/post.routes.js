@@ -10,35 +10,6 @@ const postRoutes = express.Router();
 postRoutes.post('/', protectRoute, adminRoute, async (req, res) => {
   try {
     console.log('Received data:', req.body); // Debug incoming data
-
-    // const { 
-    //   title,
-    //   description,
-    //   headerImageUrl,
-    //   innerImageForFeaturedUrl,
-    //   featured,
-    //   author,
-    //   slug,
-    //   category,
-    //   tags,
-    //   contentBlocks,
-    //   publishedAt
-    // } = req.body;
-
-    // const blog = new Blog({
-    //   title,
-    //   description,
-    //   headerImage: headerImageUrl, // Now storing URL
-    //   innerImageForFeatured: innerImageForFeaturedUrl, // Now storing URL
-    //   featured,
-    //   author,
-    //   slug,
-    //   category,
-    //   tags: JSON.parse(tags),
-    //   contentBlocks: JSON.parse(contentBlocks),
-    //   publishedAt: new Date(publishedAt)
-    //});
-
     const blog = new Blog({
       ...req.body,
       // No need for JSON.parse since express.json() handles it

@@ -11,7 +11,11 @@ export const getCart = asyncHandler(async (req, res) => {
   const cart = await Cart.findOne({ user: req.user._id })
     .populate({
       path: 'items.product',
-      select: 'name price images productType magazineData',
+      select: 'name price images productType magazineData slug',
+      populate: {
+        path: 'categories colorOptions soleOptions lastOptions materialOptions',
+      select: 'name hexCode description'
+      },
       transform: (doc) => {
         if (!doc) return null;
         return {
