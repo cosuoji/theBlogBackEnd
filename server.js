@@ -35,6 +35,7 @@ app.use(express.urlencoded({ extended: true })); // For form data
 
   const allowedOrigins = [
 	'http://localhost:5173',
+	'http://localhost:5174',
 	'https://thecompanytesting.netlify.app',
   ];
   
