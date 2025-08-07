@@ -126,7 +126,7 @@ export const logout = async (req, res) => {
 // Enhanced refreshToken endpoint
 export const refreshToken = async (req, res) => {
 	try {
-	  const refreshToken = req.cookies.refreshToken;
+	  const refreshToken =  req.cookies.refreshToken || req.headers.authorization?.replace('Bearer ', '');
 	  if (!refreshToken) throw new Error("No refresh token");
   
 	  const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
