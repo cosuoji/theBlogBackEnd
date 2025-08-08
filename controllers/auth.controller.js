@@ -92,6 +92,14 @@ export const login = async (req, res) => {
 	  
 	  // 6. Set cookies
 	  setCookies(res, accessToken, refreshToken);
+
+	  console.log("LOGIN - body:", req.body);
+		console.log("LOGIN - response:", {
+		_id: user._id,
+		email: user.email,
+		role: user.role,
+		refreshToken
+		});
   
 	  // 7. Return user data (without password)
 	  res.json({
