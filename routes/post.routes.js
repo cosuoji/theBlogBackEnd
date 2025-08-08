@@ -35,6 +35,8 @@ postRoutes.post('/', protectRoute, adminRoute, async (req, res) => {
   }
 });
 
+//
+
 // Get all blog posts
 postRoutes.get('/', async (req, res) => {
   try {

@@ -92,14 +92,6 @@ export const login = async (req, res) => {
 	  
 	  // 6. Set cookies
 	  setCookies(res, accessToken, refreshToken);
-
-	  console.log("LOGIN - body:", req.body);
-		console.log("LOGIN - response:", {
-		_id: user._id,
-		email: user.email,
-		role: user.role,
-		refreshToken
-		});
   
 	  // 7. Return user data (without password)
 	  res.json({
@@ -155,8 +147,6 @@ export const refreshToken = async (req, res) => {
       "EX",
       30 * 24 * 60 * 60
     );
-
-	console.log('refresh route:', `refresh_token:${decoded.userId}`, storedToken, refreshToken);
 
     // 3️⃣ Set cookies and respond
     setCookies(res, accessToken, newRefreshToken);
