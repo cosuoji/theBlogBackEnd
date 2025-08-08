@@ -134,43 +134,39 @@ export const logout = async (req, res) => {
 
 // Enhanced refreshToken endpoint
 export const refreshToken = async (req, res) => {
-	try {
-	  const refreshToken =  req.cookies.refreshToken || req.headers.authorization?.replace('Bearer ', '');
-	  if (!refreshToken) throw new Error("No refresh token");
-  
-	  const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-	  const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
-  
-	  if (storedToken !== refreshToken) {
-		throw new Error("Invalid refresh token");
-	  }
-  
-	  // Generate new tokens
-	  const { accessToken, newRefreshToken } = generateTokens(decoded.userId);
-	  
-	  // Update Redis storage (with new TTL)
-	  await redis.set(
-		`refresh_token:${decoded.userId}`,
-		newRefreshToken,
-		"EX", 
-		30 * 24 * 60 * 60 // 30 days
-	  );
-  
-	  // Set new cookies
-	  setCookies(res, accessToken, newRefreshToken);
-  
-	  res.json({ 
-		accessToken, 
-		refreshToken: newRefreshToken 
-	  });
-	} catch (error) {
-	  // Clear invalid tokens
-	  res.clearCookie("accessToken");
-	  res.clearCookie("refreshToken");
-	  res.status(401).json({ message: error.message });
-	}
-  };
+  try {
+    const refreshToken = req.cookies.refreshToken || req.headers.authorization?.replace('Bearer ', '');
+    if (!refreshToken) throw new Error("No refresh token");
 
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
+
+    if (storedToken !== refreshToken) {
+      throw new Error("Invalid refresh token");
+    }
+
+    // 1️⃣ Generate ONCE
+    const { accessToken, refreshToken: newRefreshToken } = generateTokens(decoded.userId);
+
+    // 2️⃣ Store the new refresh token
+    await redis.set(
+      `refresh_token:${decoded.userId}`,
+      newRefreshToken,
+      "EX",
+      30 * 24 * 60 * 60
+    );
+
+	console.log('refresh route:', `refresh_token:${decoded.userId}`, storedToken, refreshToken);
+
+    // 3️⃣ Set cookies and respond
+    setCookies(res, accessToken, newRefreshToken);
+    res.json({ accessToken, refreshToken: newRefreshToken });
+  } catch (error) {
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    res.status(401).json({ message: error.message });
+  }
+};
 // Update token expiration times
 const generateTokens = (userId) => {
 	const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
@@ -186,6 +182,7 @@ const generateTokens = (userId) => {
 
 const storeRefreshToken = async (userId, refreshToken) => {
 	await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 30 * 24 * 60 * 60); // 7days
+	console.log('storeRefreshToken:', `refresh_token:${userId}`, refreshToken);
 };
 
 // Update cookie settings
