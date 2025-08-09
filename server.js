@@ -60,6 +60,17 @@ app.use("/api/products", productRoutes)
 app.use("/api/user", userRoutes)
 app.use("/api/shoes", shoeRoutes)
 app.use("/api/magazines", magazineRoutes)
+// GET /api/debug/profile
+app.get('/api/debug/profile', (req, res) => {
+  console.log('DEBUG headers:', req.headers);
+  console.log('DEBUG token:', req.headers.authorization);
+  console.log('DEBUG user:', req.user);
+  res.json({
+    headers: req.headers,
+    token: req.headers.authorization,
+    user: req.user
+  });
+});
 
 
 
