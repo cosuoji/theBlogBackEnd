@@ -175,6 +175,8 @@ const generateTokens = (userId) => {
 
 const storeRefreshToken = async (userId, refreshToken) => {
 	await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 30 * 24 * 60 * 60); // 7days
+	console.log('storeRefreshToken:', `refresh_token:${userId}`, refreshToken);
+
 };
 
 // Update cookie settings
