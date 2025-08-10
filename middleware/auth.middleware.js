@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
+import { redis } from "../lib/redis.js";
+
 
 export const protectRoute = async (req, res, next) => {
 	try {
@@ -12,7 +14,7 @@ export const protectRoute = async (req, res, next) => {
   
 	  let decoded;
 	  try {
-		decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+		decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
 	  } catch (error) {
 		if (error.name === "TokenExpiredError") {
 		  // Let frontend handle refresh

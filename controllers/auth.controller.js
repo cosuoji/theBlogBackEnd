@@ -6,6 +6,9 @@ import asyncHandler from 'express-async-handler';
 import Order from "../models/order.model.js";
 import crypto from 'crypto';
 import sendEmail from "../lib/sendEmail.js";
+import { setCookies, storeRefreshToken, generateTokens } from "../utils/authHelpers.js";
+
+
 
 
 
@@ -110,9 +113,16 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
 	try {
 		const refreshToken = req.cookies.refreshToken;
+		const accessToken = req.cookies.accessToken;
+
 		if (refreshToken) {
-			const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+			const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
 			await redis.del(`refresh_token:${decoded.userId}`);
+		}
+
+        if (accessToken) {
+			const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+			await redis.set(`bl_access:${decoded.jti}`, true, 'EX', 60 * 60); // 1 hour
 		}
 
 		res.clearCookie("accessToken");
@@ -123,78 +133,6 @@ export const logout = async (req, res) => {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
-
-// Enhanced refreshToken endpoint
-export const refreshToken = async (req, res) => {
-  try {
-    const refreshToken = req.cookies.refreshToken || req.headers.authorization?.replace('Bearer ', '');
-    if (!refreshToken) throw new Error("No refresh token");
-
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
-
-    if (storedToken !== refreshToken) {
-      throw new Error("Invalid refresh token");
-    }
-
-    // 1️⃣ Generate ONCE
-    const { accessToken, refreshToken: newRefreshToken } = generateTokens(decoded.userId);
-
-    // 2️⃣ Store the new refresh token
-    await redis.set(
-      `refresh_token:${decoded.userId}`,
-      newRefreshToken,
-      "EX",
-      30 * 24 * 60 * 60
-    );
-
-    // 3️⃣ Set cookies and respond
-    setCookies(res, accessToken, newRefreshToken);
-    res.json({ accessToken, refreshToken: newRefreshToken });
-  } catch (error) {
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
-    res.status(401).json({ message: error.message });
-  }
-};
-// Update token expiration times
-const generateTokens = (userId) => {
-	const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
-	  expiresIn: "1h", // Increased from 15m
-	});
-  
-	const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
-	  expiresIn: "30d", // Increased from 7d
-	});
-  
-	return { accessToken, refreshToken };
-  };
-
-const storeRefreshToken = async (userId, refreshToken) => {
-	await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 30 * 24 * 60 * 60); // 7days
-
-};
-
-// Update cookie settings
-const setCookies = (res, accessToken, refreshToken) => {
-	const cookieOptions = {
-	  httpOnly: true,
-	  secure: true,           // ✅ Force HTTPS for Netlify
-	  sameSite: 'None',       // ✅ Required for cross-origin cookies
-	  path: '/',
-	};
-  
-	res.cookie('accessToken', accessToken, {
-	  ...cookieOptions,
-	  maxAge: 60 * 60 * 1000, // 1 hour
-	});
-  
-	res.cookie('refreshToken', refreshToken, {
-	  ...cookieOptions,
-	  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-	});
-  };
-  
 
 
 export const getFullProfile = asyncHandler(async (req, res) => {
@@ -262,3 +200,49 @@ export const resetPassword = async (req, res) => {
   
 	res.json({ message: "Password has been reset successfully" });
   };
+
+    export const refreshToken = asyncHandler(async (req, res) => {
+    try {
+      
+    const oldRefreshToken =
+      req.cookies.refreshToken ||
+      req.headers.authorization?.replace('Bearer ', '');
+
+    if (!oldRefreshToken) throw new Error("No refresh token");
+  
+      // 1. Verify token
+      const decoded = jwt.verify(oldRefreshToken, process.env.JWT_SECRET);
+  
+      // 2. Check Redis store
+      const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
+      if (storedToken !== oldRefreshToken) {
+        throw new Error("Invalid refresh token");
+      }
+  
+      // 3. Generate new tokens
+      const { accessToken, refreshToken: newRefreshToken } = generateTokens(decoded.userId);
+  
+      // 4. Store new refresh token in Redis
+      await redis.set(
+        `refresh_token:${decoded.userId}`,
+        newRefreshToken,
+        "EX",
+        30 * 24 * 60 * 60
+      );
+  
+      // 5. Set new cookies
+      setCookies(res, accessToken, newRefreshToken);
+  
+      // 6. Respond
+      res.json({
+        accessToken,
+        refreshToken: newRefreshToken
+      });
+  
+    } catch (error) {
+      // Clear cookies to force logout on client
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
+      res.status(401).json({ message: error.message || "Unauthorized" });
+    }
+  });
